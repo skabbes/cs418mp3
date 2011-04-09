@@ -1,8 +1,11 @@
 #include "model.h"
+#include "textureloader.h"
+
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <GL/glut.h>
+#include <cmath>
 
 Model::Model(string filename){
 
@@ -46,6 +49,10 @@ Model::Model(string filename){
 
 }
 
+void Model::addTexture(string filename, bool wrap){
+    texture = loadTexture(filename.c_str(), wrap ? 1: 0);
+}
+
 void Model::computeNormals(){
     for(int i=0;i<faces.size();i++){
         Vec3f one = verticies[ faces[i][0] ];
@@ -68,19 +75,27 @@ void Model::computeNormals(){
 
 void Model::render(){
 
+    float x, y, z, theta;
+    float nx, ny, nz;
+    float ymax = .5;
+
     for(int i=0;i<faces.size();i++){
         glBegin(GL_TRIANGLES);
             glColor3f(1.0, 1.0, 1.0);
+            for(int j=0;j<3;j++){
+                x = verticies[ faces[i][j] ][0];
+                y = verticies[ faces[i][j] ][1];
+                z = verticies[ faces[i][j] ][2];
+                theta = atan2(x, z);
 
-            glNormal3f( normals[ faces[i][0] ][0], normals[faces[i][0]][1], normals[faces[i][0]][2] );
+                nx = normals[ faces[i][j] ][0];
+                ny = normals[ faces[i][j] ][1];
+                nz = normals[ faces[i][j] ][2];
 
-            glVertex3f( verticies[ faces[i][0] ][0], verticies[faces[i][0]][1], verticies[faces[i][0]][2] );
-
-            glNormal3f( normals[faces[i][1]][0], normals[faces[i][1]][1], normals[faces[i][1]][2] );
-            glVertex3f( verticies[faces[i][1]][0], verticies[faces[i][1]][1], verticies[faces[i][1]][2] );
-
-            glNormal3f( normals[faces[i][2]][0], normals[faces[i][2]][1], normals[faces[i][2]][2] );
-            glVertex3f( verticies[faces[i][2]][0], verticies[faces[i][2]][1], verticies[faces[i][2]][2] );
+                glNormal3f(nx, ny, nz);
+                glTexCoord2d( (20.0 *  theta ) / (2 * M_PI), y / ymax);
+                glVertex3f(x, y, z);
+            }
         glEnd();
 
 /*

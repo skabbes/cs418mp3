@@ -3,7 +3,7 @@ TARGET = mp3
 CC = g++
 CCOPTS=  -g
 
-OBJ = main.o shaderhelp.o model.o
+OBJ = main.o shaderhelp.o model.o textureloader.o readppm.o
 LIBS = -lglut -lGL -lGLU -lGLEW
 
 LINK = g++

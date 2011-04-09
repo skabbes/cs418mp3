@@ -19,6 +19,7 @@ Model teapot("teapot.obj");
 void init(void) 
 {
     teapot.computeNormals();
+    teapot.addTexture("metal.ppm", true);
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -34,6 +35,7 @@ void init(void)
     glClearColor (0.5, 0.5, 1.0, 0.0);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
     glEnable(GL_COLOR_MATERIAL);
 }
 
@@ -77,8 +79,6 @@ void display(void)
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 10.0);
 */
 
-    glScalef(1.5, 1.5, 1.5);
-    glTranslatef(0, -1.0, 0);
     glRotatef((int)(time/20 )% 360, 0, 1, 0);
 
     teapot.render();
