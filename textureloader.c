@@ -32,6 +32,7 @@ GLuint loadTexture( const char * filename, int wrap )
     // build our texture mipmaps
     gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data );
 
+    glBindTexture( GL_TEXTURE_2D, 0);
     // free buffer
     free( data );
 

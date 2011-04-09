@@ -10,16 +10,62 @@
 #include "gfx/mat3.h"
 #include "gfx/mat4.h"
 #include "model.h"
+#include "textureloader.h"
 #include "shaderhelp.h"
 
 using namespace gfx;
 
 Model teapot("teapot.obj");
+Model teapot1("teapot.obj");
+GLuint environment;
+
+// Yeah! I've got some shaders
+GLuint vtx_shader, frag_shader, shader_program;
+
+void initShaders() {
+    return;
+	char *vs = NULL,*fs = NULL;
+
+	vtx_shader = glCreateShader(GL_VERTEX_SHADER);
+	frag_shader = glCreateShader(GL_FRAGMENT_SHADER);	
+
+	vs = textFileRead("vs_basic.vert");
+	fs = textFileRead("fs_basic.frag");
+
+	const char * vv = vs;
+	const char * ff = fs;
+
+	glShaderSource(vtx_shader, 1, &vv,NULL);
+	glShaderSource(frag_shader, 1, &ff,NULL);
+
+	free(vs);
+	free(fs);
+
+	glCompileShader(vtx_shader);
+	glCompileShader(frag_shader);
+
+	printShaderInfoLog(vtx_shader);
+	printShaderInfoLog(frag_shader);
+
+	shader_program = glCreateProgram();
+	glAttachShader(shader_program,vtx_shader);
+	glAttachShader(shader_program,frag_shader);
+
+	glLinkProgram(shader_program);
+	printProgramInfoLog(shader_program);
+   glUseProgram(shader_program);
+}
 
 void init(void) 
 {
+    initShaders();
+
     teapot.computeNormals();
-    teapot.addTexture("metal.ppm", true);
+    teapot.setEnv("enviro.ppm", true);
+    teapot.setTexture("metal.ppm", true);
+
+    //teapot1.computeNormals();
+    //teapot1.setTexture("grunge.ppm", true);
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -35,8 +81,9 @@ void init(void)
     glClearColor (0.5, 0.5, 1.0, 0.0);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
     glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_TEXTURE_2D);
+
 }
 
 void display(void)
@@ -55,33 +102,27 @@ void display(void)
 
 	gluLookAt(0.f,3.f,5.f,0.f,0.f,0.f,0.f,1.f,0.f);
 
-/*
-    Vec3 lookAt = eye + velocity;
-    gluLookAt(eye[0], eye[1], eye[2], lookAt[0], lookAt[1], lookAt[2], up[0], up[1], up[2]);
-
-    int velLoc = glGetUniformLocation(shader_program,"velocity");
-    glUniform3f(velLoc, velocity[0], velocity[1], velocity[2]);
-
-    int visLoc = glGetUniformLocation(shader_program,"visibility");
-    glUniform1f(visLoc, visibility);
-
-    int eyeLoc = glGetUniformLocation(shader_program,"eye");
-    glUniform3f(eyeLoc, eye[0], eye[1], eye[2]);
-*/
-
-/*
-    GLfloat tanamb[] = {0.2,0.15,0.1,1.0};
-    GLfloat tandiff[] = {0.4,0.3,0.2,1.0};
-
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, tanamb);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tandiff);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tandiff);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 10.0);
-*/
+    glColor3f(1.0, 0, 0);
+    glBegin(GL_QUADS);
+        glVertex3f(-10, 0, -10);
+        glVertex3f(10, 0, -10);
+        glVertex3f(10, 0, 10);
+        glVertex3f(-10, 0, 10);
+    glEnd();
 
     glRotatef((int)(time/20 )% 360, 0, 1, 0);
 
+    glBindTexture( GL_TEXTURE_2D, environment);
+
+
+    glColor3f(1.0, 1.0, 1.0);
     teapot.render();
+
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+    glDisable(GL_TEXTURE_GEN_R);
+
+    glBindTexture( GL_TEXTURE_2D, 0);
 
     glutSwapBuffers();
     glFlush ();

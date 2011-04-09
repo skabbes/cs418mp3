@@ -16,10 +16,12 @@ class Model{
         vector<Vec3f> normals;
         vector<Vec3i> faces;
         GLuint texture;
+        GLuint env;
     public:
         Model(string filename);
         void computeNormals();
-        void addTexture(string filename, bool wrap);
+        void setTexture(string filename, bool wrap);
+        void setEnv(string filename, bool wrap);
         void render();
 };
 

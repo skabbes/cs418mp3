@@ -8,6 +8,7 @@
 #include <cmath>
 
 Model::Model(string filename){
+    texture = 0;
 
     ifstream in;
     in.open(filename.c_str(), ios::in);
@@ -49,8 +50,12 @@ Model::Model(string filename){
 
 }
 
-void Model::addTexture(string filename, bool wrap){
+void Model::setTexture(string filename, bool wrap){
     texture = loadTexture(filename.c_str(), wrap ? 1: 0);
+}
+
+void Model::setEnv(string filename, bool wrap){
+    env = loadTexture(filename.c_str(), wrap ? 1: 0);
 }
 
 void Model::computeNormals(){
@@ -75,51 +80,52 @@ void Model::computeNormals(){
 
 void Model::render(){
 
+    /*
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+    glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+
+    glEnable(GL_TEXTURE_GEN_S);
+    glEnable(GL_TEXTURE_GEN_T);
+    glEnable(GL_TEXTURE_GEN_R);
+    */
+
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glBindTexture( GL_TEXTURE_2D, texture );
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture( GL_TEXTURE_2D, env);
+
     float x, y, z, theta;
     float nx, ny, nz;
     float ymax = .5;
 
     for(int i=0;i<faces.size();i++){
         glBegin(GL_TRIANGLES);
-            glColor3f(1.0, 1.0, 1.0);
             for(int j=0;j<3;j++){
                 x = verticies[ faces[i][j] ][0];
                 y = verticies[ faces[i][j] ][1];
                 z = verticies[ faces[i][j] ][2];
                 theta = atan2(x, z);
+                float percent = (theta + M_PI) / (2 * M_PI);
+                if(percent > .5) percent = 1 - percent;
 
                 nx = normals[ faces[i][j] ][0];
                 ny = normals[ faces[i][j] ][1];
                 nz = normals[ faces[i][j] ][2];
 
                 glNormal3f(nx, ny, nz);
-                glTexCoord2d( (20.0 *  theta ) / (2 * M_PI), y / ymax);
+
+                glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 20 * percent, y / ymax);
+                glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 20 * percent, y / ymax);
+
+                //glTexCoord2d( 20.0 *  percent, y / ymax);
                 glVertex3f(x, y, z);
             }
         glEnd();
-
-/*
-        glBegin(GL_LINES);
-            glColor3f(1.0, 0, 0);
-            Vec3f v = verticies[ faces[i][0] ];
-            Vec3f n = v + (normals[ faces[i][0] ] * .5);
-
-            glVertex3f(v[0], v[1], v[2]);
-            glVertex3f(n[0], n[1], n[2]);
-
-            v = verticies[ faces[i][1] ];
-            n = v + (normals[ faces[i][1] ] * .5);
-
-            glVertex3f(v[0], v[1], v[2]);
-            glVertex3f(n[0], n[1], n[2]);
-
-            v = verticies[ faces[i][2] ];
-            n = v + (normals[ faces[i][2] ] * .5);
-
-            glVertex3f(v[0], v[1], v[2]);
-            glVertex3f(n[0], n[1], n[2]);
-
-        glEnd();
-*/
     }
+
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture( GL_TEXTURE_2D, 0);
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glBindTexture( GL_TEXTURE_2D, 0);
 }
