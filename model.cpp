@@ -54,8 +54,12 @@ void Model::setTexture(string filename, bool wrap){
     texture = loadTexture(filename.c_str(), wrap ? 1: 0);
 }
 
-void Model::setEnv(string filename, bool wrap){
-    env = loadTexture(filename.c_str(), wrap ? 1: 0);
+void Model::setMixture(string filename, bool wrap){
+    mixture = loadTexture(filename.c_str(), wrap ? 1: 0);
+}
+
+void Model::setEnv(string filename){
+    env = loadSphereMap(filename.c_str());
 }
 
 void Model::computeNormals(){
@@ -78,22 +82,31 @@ void Model::computeNormals(){
     }
 }
 
-void Model::render(){
+void Model::render(int shader_program, bool showNormals){
 
-    /*
-    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
-    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
-    glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+    glUseProgram(shader_program);
+    int texCoordLoc = glGetAttribLocation(shader_program,"TextureCoord");
+    int texLoc = glGetUniformLocation(shader_program,"texture");
+    int envLoc = glGetUniformLocation(shader_program,"env");
+    int mixLoc = glGetUniformLocation(shader_program,"mixture");
 
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(GL_TEXTURE_2D, env);
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
     glEnable(GL_TEXTURE_GEN_S);
     glEnable(GL_TEXTURE_GEN_T);
-    glEnable(GL_TEXTURE_GEN_R);
-    */
 
-    glActiveTextureARB(GL_TEXTURE1_ARB);
-    glBindTexture( GL_TEXTURE_2D, texture );
-    glActiveTextureARB(GL_TEXTURE0_ARB);
-    glBindTexture( GL_TEXTURE_2D, env);
+
+    glActiveTexture(GL_TEXTURE0 + 2);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glActiveTexture(GL_TEXTURE0 + 4);
+    glBindTexture(GL_TEXTURE_2D, mixture);
+
+    glUniform1i(envLoc, 0);
+    glUniform1i(texLoc, 2);
+    glUniform1i(mixLoc, 4);
 
     float x, y, z, theta;
     float nx, ny, nz;
@@ -106,6 +119,7 @@ void Model::render(){
                 y = verticies[ faces[i][j] ][1];
                 z = verticies[ faces[i][j] ][2];
                 theta = atan2(x, z);
+
                 float percent = (theta + M_PI) / (2 * M_PI);
                 if(percent > .5) percent = 1 - percent;
 
@@ -114,18 +128,33 @@ void Model::render(){
                 nz = normals[ faces[i][j] ][2];
 
                 glNormal3f(nx, ny, nz);
-
-                glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 20 * percent, y / ymax);
-                glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 20 * percent, y / ymax);
-
-                //glTexCoord2d( 20.0 *  percent, y / ymax);
+                glVertexAttrib2f(texCoordLoc, 20* percent, y / ymax);
                 glVertex3f(x, y, z);
             }
         glEnd();
     }
 
-    glActiveTextureARB(GL_TEXTURE0_ARB);
-    glBindTexture( GL_TEXTURE_2D, 0);
-    glActiveTextureARB(GL_TEXTURE1_ARB);
-    glBindTexture( GL_TEXTURE_2D, 0);
+    glUseProgram(0);
+
+    if( showNormals ){
+        for(int i=0;i<verticies.size();i++){
+            glBegin(GL_LINES);
+                glColor3f(1.0, 0.0, 0.0);
+                Vec3f start = verticies[i];
+                Vec3f normal = normals[i];
+                Vec3f end = start + normal * .2;
+
+                glVertex3f(start[0], start[1], start[2]);
+                glVertex3f(end[0], end[1], end[2]);
+            glEnd();
+        }
+    }
+
+
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0 + 2);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0 + 4);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }

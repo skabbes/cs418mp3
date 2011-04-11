@@ -6,6 +6,7 @@
 
 GLuint loadTexture( const char * filename, int wrap )
 {
+
     GLuint texture;
     int width, height;
     unsigned char * data = readPPM(filename, &width, &height);
@@ -17,10 +18,11 @@ GLuint loadTexture( const char * filename, int wrap )
     glBindTexture( GL_TEXTURE_2D, texture );
 
     // select modulate to mix texture with color for shading
-    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
     // when texture area is small, bilinear filter the closest mipmap
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
+
     // when texture area is large, bilinear filter the first mipmap
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
@@ -36,5 +38,11 @@ GLuint loadTexture( const char * filename, int wrap )
     // free buffer
     free( data );
 
+    return texture;
+}
+
+GLuint loadSphereMap( const char * filename)
+{
+    GLuint texture = loadTexture(filename, 1);
     return texture;
 }
