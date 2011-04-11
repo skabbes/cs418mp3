@@ -1,1 +1,18 @@
-This is a MP for CS418, introduction to Graphics at the University of Illinois.
+===============================================================================
+ CS418 University of Illinois MP3
+ Steven Kabbes :: skabbes2
+===============================================================================
+This mp showcases environment mapping and texture mapping onto a teapot.
+
+Particularly, this implementation relies heavily on shaders to implement Phong
+lighting, and sphere environment mapping.
+
+To run the code, simply type make followed by ./mp3.
+
+===============================================================================
+ Special Features
+===============================================================================
+Press 'n' to toggle viewing normals
+Press 't' to show only texture mapping
+Press 'e' to show only environment mapping
+Press 'm' to show a mixed texture and environment map filtered through a mask
